@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Boss Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            background: linear-gradient(to bottom, #141e30, #243b55);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Phone-style vertical box */
+        .login-container {
+            width: 280px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .top img {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid gold;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 0;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 9px;
+            margin: 6px 0;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .voice-btn {
+            background: #00c3ff;
+            color: black;
+        }
+
+        .login-btn {
+            background: gold;
+        }
+
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 13px;
+            min-height: 20px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="top">
+        <img src="images/shivaji.png" alt="Boss">
+        <h2>🔥 Boss Login</h2>
+    </div>
+
+    <button class="voice-btn" onclick="startVoice('username')">
+        🎤 Username
+    </button>
+
+    <button class="voice-btn" onclick="startVoice('password')">
+        🎤 Password
+    </button>
+
+    <button class="login-btn" onclick="login()">Login</button>
+
+    <div id="message"></div>
+
+</div>
+
+<script>
+let usernameValue = "";
+let passwordValue = "";
+let recognition;
+let lastTranscript = "";
+let silenceTimer;
+
+function normalizePassword(text) {
+    text = text.toLowerCase();
+
+    // Handle common mis-hearings of "cool"
+    if (text.includes("cool") || text.includes("kool") || text.includes("call") || text.includes("coo")) {
+        return "cool";
+    }
+    return text;
+}
+
+function startVoice(type) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        alert("Use Google Chrome");
+        return;
+    }
+
+    if (recognition) {
+        recognition.abort();
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    lastTranscript = "";
+
+    document.getElementById("message").innerText = "🎤 Listening...";
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        let text = event.results[0][0].transcript.toLowerCase().trim();
+        lastTranscript = text;
+
+        console.log("Heard:", text);
+
+        // Reset silence timer every time speech is detected
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => {
+            processResult(type, lastTranscript);
+            recognition.stop();
+        }, 1200); // 1.2 sec silence = done speaking
+    };
+
+    recognition.onerror = function(event) {
+        document.getElementById("message").innerText = "❌ Error: " + event.error;
+    };
+
+    recognition.onend = function() {
+        console.log("Stopped");
+    };
+}
+
+function processResult(type, text) {
+    if (!text) {
+        document.getElementById("message").innerText = "❌ Didn't catch that. Try again.";
+        return;
+    }
+
+    if (type === "username") {
+        usernameValue = text;
+        document.getElementById("message").innerText = "✅ Username: " + text;
+    } else {
+        passwordValue = normalizePassword(text);
+        document.getElementById("message").innerText = "✅ Password: " + passwordValue;
+    }
+}
+
+function login() {
+    let user = usernameValue;
+    let pass = passwordValue;
+
+    if (user.includes("shivaji") && user.includes("boss") && pass === "cool") {
+        document.getElementById("message").innerText = "🔥 Login Successful! Boss Entry!";
+        document.getElementById("message").style.color = "lightgreen";
+    } else {
+        document.getElementById("message").innerText = "❌ Invalid login!";
+        document.getElementById("message").style.color = "red";
+    }
+}
+</script>
+
+</body>
+</html>
